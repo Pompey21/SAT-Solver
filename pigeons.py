@@ -165,8 +165,6 @@ def generate_formula1(n,ph_2_bdd,bdd):
     print('********')
     print(bdd.to_expr(all_clauses))
     return all_clauses, bdd
-            
-
 
 def generate_formula2(n):
     # Create a BDD manager. We only need one.
@@ -182,6 +180,35 @@ def generate_formula2(n):
                                 ph_2_bdd[(p2,h)]])
     return returning_val
 
+def pg_print(pigeon,hole):
+    pg = f"x_{pigeon}_{hole}"
+    return pg
+
+def generate_list_clauses(n):
+    lst_clauses = []
+    for pigeon in range(0,n):
+        clause = []
+        for hole in range(0,n-1):
+            clause.append((pigeon,hole))
+        lst_clauses.append(clause)
+    return lst_clauses
+            
+def bdd_clauses_1(lst_clauses,bdd,ph_2_bdd):
+    lst_bdd_clauses = []
+    for clause in lst_clauses:
+        print(ph_2_bdd.keys())
+        print(clause[0])
+        bdd_clause = bdd.apply('or',ph_2_bdd[clause[0]],ph_2_bdd[clause[0]])
+        for pig_hole in clause:
+            bdd_clause = bdd.apply('or',bdd_clause,ph_2_bdd[pig_hole])
+        lst_bdd_clauses.append(bdd_clause)
+    return lst_bdd_clauses, bdd
+
+def bdd_clauses_2(lst_bdd_clauses,bdd,ph_2_bdd):
+    bdd_clause = lst_bdd_clauses[0]
+    for clause in lst_bdd_clauses:
+        bdd_clause = bdd.apply('and',bdd_clause,clause)
+    return bdd_clause, bdd
 
 def pigeonhole(pdfname, n):
     # Create a BDD manager. We only need one.
@@ -189,13 +216,18 @@ def pigeonhole(pdfname, n):
     bdd = _bdd.BDD()
     for p1 in range(n):
         for h in range(n-1):
-            pigeon_hole = "x_"+str(p1)+"_"+str(h)
+            pigeon_hole = f"x_{p1}_{h}"
             bdd.declare(pigeon_hole)
             ph_2_bdd[(p1,h)] = bdd.var(pigeon_hole)
+    lst_clauses = generate_list_clauses(n)
+    print('******')
+    print(lst_clauses)
+    print('******')
+    lst_bdd_clauses,bdd = bdd_clauses_1(lst_clauses,bdd,ph_2_bdd)
+    bdd_clause,bdd = bdd_clauses_2(lst_bdd_clauses,bdd,ph_2_bdd)
 
-    all_clauses, bdd = generate_formula1(n,ph_2_bdd,bdd)
-    bdd.dump('test.pdf', roots=[all_clauses])
-    # print(lst_clauses)
+    print(bdd.to_expr(bdd_clause))
+
 
 
     
