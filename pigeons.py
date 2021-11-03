@@ -148,13 +148,26 @@ def pigeon_hole_generator(m,i,j):
 
 def generate_formula1(n,ph_2_bdd,bdd):
     lst_pigeons_in_holes = []
-    for h in range(0,n-1):
-        clauses = 0
-        for p1 in range(0,n):
-            if clause == 0:
+    for p1 in range(0,n):
+        clause = ph_2_bdd[(p1,0)]
+        for h in range(0,n-1):
+            print('h = {}'.format(h))
+            print('p1 = {}'.format(p1))
+            if clause == ph_2_bdd[(p1,0)]:
                 clause = ph_2_bdd[(p1,h)]
+                # lst_pigeons_in_holes.append(clause)
             else:
-                clause = bdd.apply('and',clause,ph_2_bdd[(p1,h)])
+                print('yes')
+                clause = bdd.apply('or',clause,ph_2_bdd[(p1,h)])
+                # lst_pigeons_in_holes.append(('or',bdd.to_expr(clause),'x_'+str(p1)+'_'+str(h)))
+        lst_pigeons_in_holes.append(clause)
+        
+    all_clauses = lst_pigeons_in_holes[0] 
+    for clause in lst_pigeons_in_holes:
+        all_clauses = bdd.apply('and',all_clauses,clause)
+    print('********')
+    print(bdd.to_expr(all_clauses))
+    return lst_pigeons_in_holes, bdd
             
 
 
@@ -168,8 +181,8 @@ def generate_formula2(n):
             for p2 in range(n):
                 if p1 == p2:
                     continue
-                returning_val.append([(-pigeon_hole_generator(n,p1,h)),
-                                -pigeon_hole_generator(n,p2,h),])
+                returning_val.append([ph_2_bdd[(p1,h)],
+                                ph_2_bdd[(p2,h)]])
     return returning_val
 
 
@@ -177,18 +190,17 @@ def pigeonhole(pdfname, n):
     # Create a BDD manager. We only need one.
     ph_2_bdd = {}
     bdd = _bdd.BDD()
-    for h in range(n-1):
-        for p1 in range(n):
-            pigeon_hole = f"x_{p1}_{h}"
+    for p1 in range(n):
+        for h in range(n-1):
+            pigeon_hole = "x_"+str(p1)+"_"+str(h)
             bdd.declare(pigeon_hole)
             ph_2_bdd[(p1,h)] = bdd.var(pigeon_hole)
+    lst_clauses, bdd = generate_formula1(n,ph_2_bdd,bdd)
+    bdd.dump('test.pdf')
+    print(lst_clauses)
 
 
-    # Create variables xs.
-    for i in range(n):
-        bdd.declare('x%d' % i)
-    # Arrays with variable names.
-    xs_names = ['x%d' % i for i in range(n)]
+    
 
 # <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
 # ======================================================================================
@@ -211,6 +223,9 @@ def main():
     # Run the example.
     ex_to_run = examples[args.example - 1]
     ex_to_run(args.pdf, args.n)
+
+    # Pigeon Hole System
+    pigeonhole('test.pdf',3)
 
 if __name__ == '__main__':
     main()
