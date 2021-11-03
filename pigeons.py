@@ -139,10 +139,49 @@ def nBitGE(xs, ys):
         this_bit_eq = (xs[0] & ys[0]) | (~xs[0] & ~ys[0])
         return this_bit_gt | (this_bit_eq & nBitGE(xs[1:], ys[1:]))
 
+# ======================================================================================
+# <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+# turning pigeon i sitting in hole j (out of m holes) into a variable
+def pigeon_hole_generator(m,i,j):
+    pigeon_hole = i * m + j + 1
+    return pigeon_hole
+
+def generate_formula1(n):
+    lst_pigeons_in_holes = []
+    for i in range(0,n-1):
+        clauses = []
+        for j in range(0,n):
+            pigeon_hole_var = pigeon_hole_generator(n-1,i,j)
+            clauses.append(pigeon_hole_var)
+        lst_pigeons_in_holes.append(clause_str)
+
+
+def generate_formula2(n):
+    # Create a BDD manager. We only need one.
+    returning_val = []
+    # we have n-1 holes!
+    for h in range(n-1):
+        # pigeons:)
+        for p1 in range(n):
+            for p2 in range(n):
+                if p1 == p2:
+                    continue
+                returning_val.append([(-pigeon_hole_generator(n,p1,h)),
+                                -pigeon_hole_generator(n,p2,h),])
+    return returning_val
+
+
 def pigeonhole(pdfname, n):
-    "TODO: Implement your solution to the problem here."
-    print ('  [Pigeonhole Problem for n=%d]' % n)
-    print ('  ** FIXME: nothing implemented yet.**')
+    # Create a BDD manager. We only need one.
+    bdd = _bdd.BDD()
+    # Create variables xs.
+    for i in range(n):
+        bdd.declare('x%d' % i)
+    # Arrays with variable names.
+    xs_names = ['x%d' % i for i in range(n)]
+
+# <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
+# ======================================================================================
 
 def main():
     # List of examples.
