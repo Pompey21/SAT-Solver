@@ -146,14 +146,16 @@ def pigeon_hole_generator(m,i,j):
     pigeon_hole = i * m + j + 1
     return pigeon_hole
 
-def generate_formula1(n):
+def generate_formula1(n,ph_2_bdd,bdd):
     lst_pigeons_in_holes = []
-    for i in range(0,n-1):
-        clauses = []
-        for j in range(0,n):
-            pigeon_hole_var = pigeon_hole_generator(n-1,i,j)
-            clauses.append(pigeon_hole_var)
-        lst_pigeons_in_holes.append(clause_str)
+    for h in range(0,n-1):
+        clauses = 0
+        for p1 in range(0,n):
+            if clause == 0:
+                clause = ph_2_bdd[(p1,h)]
+            else:
+                clause = bdd.apply('and',clause,ph_2_bdd[(p1,h)])
+            
 
 
 def generate_formula2(n):
@@ -173,7 +175,15 @@ def generate_formula2(n):
 
 def pigeonhole(pdfname, n):
     # Create a BDD manager. We only need one.
+    ph_2_bdd = {}
     bdd = _bdd.BDD()
+    for h in range(n-1):
+        for p1 in range(n):
+            pigeon_hole = f"x_{p1}_{h}"
+            bdd.declare(pigeon_hole)
+            ph_2_bdd[(p1,h)] = bdd.var(pigeon_hole)
+
+
     # Create variables xs.
     for i in range(n):
         bdd.declare('x%d' % i)
