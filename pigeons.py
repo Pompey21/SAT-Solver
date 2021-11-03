@@ -153,13 +153,10 @@ def generate_formula1(n,ph_2_bdd,bdd):
         for h in range(0,n-1):
             print('h = {}'.format(h))
             print('p1 = {}'.format(p1))
-            if clause == ph_2_bdd[(p1,0)]:
-                clause = ph_2_bdd[(p1,h)]
                 # lst_pigeons_in_holes.append(clause)
-            else:
-                print('yes')
-                clause = bdd.apply('or',clause,ph_2_bdd[(p1,h)])
-                # lst_pigeons_in_holes.append(('or',bdd.to_expr(clause),'x_'+str(p1)+'_'+str(h)))
+            print('yes')
+            clause = bdd.apply('or',clause,ph_2_bdd[(p1,h)])
+            # lst_pigeons_in_holes.append(('or',bdd.to_expr(clause),'x_'+str(p1)+'_'+str(h)))
         lst_pigeons_in_holes.append(clause)
         
     all_clauses = lst_pigeons_in_holes[0] 
@@ -167,7 +164,7 @@ def generate_formula1(n,ph_2_bdd,bdd):
         all_clauses = bdd.apply('and',all_clauses,clause)
     print('********')
     print(bdd.to_expr(all_clauses))
-    return lst_pigeons_in_holes, bdd
+    return all_clauses, bdd
             
 
 
@@ -195,9 +192,10 @@ def pigeonhole(pdfname, n):
             pigeon_hole = "x_"+str(p1)+"_"+str(h)
             bdd.declare(pigeon_hole)
             ph_2_bdd[(p1,h)] = bdd.var(pigeon_hole)
-    lst_clauses, bdd = generate_formula1(n,ph_2_bdd,bdd)
-    bdd.dump('test.pdf')
-    print(lst_clauses)
+
+    all_clauses, bdd = generate_formula1(n,ph_2_bdd,bdd)
+    bdd.dump('test.pdf', roots=[all_clauses])
+    # print(lst_clauses)
 
 
     
