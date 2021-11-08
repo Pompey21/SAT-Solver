@@ -40,7 +40,7 @@ for j in shifts:
         solver.add( Or(variables[j][i] == 0, variables[(j+1)%21][i] == 0))
 
 
-# c) 
+# # c) Check that all are doing Equal Shifts
 num_shifts_worker = []
 for i in employees:
     num_shifts = 0
@@ -57,9 +57,9 @@ for elem in num_shifts_worker:
 
 print(solver.check())
 print(solver.model())
-        
 
-print(variables)
+# for var in solver.model():
+#     print(var)
 
 
 
