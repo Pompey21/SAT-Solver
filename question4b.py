@@ -66,6 +66,8 @@ def automator():
         generate_cnf_file(n,n-1,filename)
     return string_commants
 
+generate_cnf_file(3,2,'question4b.cnf')
+
 string_commants = automator()
 
 
