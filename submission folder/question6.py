@@ -66,6 +66,8 @@ for elem in num_shifts_worker:
 print(solver.check())
 print(solver.model())
 
+# for var in solver.model():
+#     print(var)
 
 
 

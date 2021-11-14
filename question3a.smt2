@@ -1,5 +1,5 @@
 (set-option :print-success false)
-(set-logic QF_UFIDL)
+(set-logic QF_IDL)
 
 (declare-fun x0 () Int)
 (declare-fun x1 () Int)

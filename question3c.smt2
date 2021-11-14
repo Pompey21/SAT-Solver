@@ -1,5 +1,5 @@
 (set-option :print-success false)
-(set-logic QF_UFBV)
+(set-logic QF_BV)
 
 
 (declare-fun x2 () (_ BitVec 32))
