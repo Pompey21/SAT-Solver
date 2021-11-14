@@ -14,8 +14,8 @@
 #################################################################################
 
 from dd import autoref as _bdd
-
 import argparse
+import itertools
 
 def example1(pdfname, n):
     print ('  [Example 1]: Creating BDDs that involve simple propositional operators.')
@@ -140,51 +140,11 @@ def nBitGE(xs, ys):
         return this_bit_gt | (this_bit_eq & nBitGE(xs[1:], ys[1:]))
 
 # ======================================================================================
-# <><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>
-# turning pigeon i sitting in hole j (out of m holes) into a variable
-def pigeon_hole_generator(m,i,j):
-    pigeon_hole = i * m + j + 1
-    return pigeon_hole
 
-def generate_formula1(n,ph_2_bdd,bdd):
-    lst_pigeons_in_holes = []
-    for p1 in range(0,n):
-        clause = ph_2_bdd[(p1,0)]
-        for h in range(0,n-1):
-            print('h = {}'.format(h))
-            print('p1 = {}'.format(p1))
-                # lst_pigeons_in_holes.append(clause)
-            print('yes')
-            clause = bdd.apply('or',clause,ph_2_bdd[(p1,h)])
-            # lst_pigeons_in_holes.append(('or',bdd.to_expr(clause),'x_'+str(p1)+'_'+str(h)))
-        lst_pigeons_in_holes.append(clause)
-        
-    all_clauses = lst_pigeons_in_holes[0] 
-    for clause in lst_pigeons_in_holes:
-        all_clauses = bdd.apply('and',all_clauses,clause)
-    print('********')
-    print(bdd.to_expr(all_clauses))
-    return all_clauses, bdd
-
-def generate_formula2(n):
-    # Create a BDD manager. We only need one.
-    returning_val = []
-    # we have n-1 holes!
-    for h in range(n-1):
-        # pigeons:)
-        for p1 in range(n):
-            for p2 in range(n):
-                if p1 == p2:
-                    continue
-                returning_val.append([ph_2_bdd[(p1,h)],
-                                ph_2_bdd[(p2,h)]])
-    return returning_val
-
-def pg_print(pigeon,hole):
-    pg = f"x_{pigeon}_{hole}"
-    return pg
-
-def generate_list_clauses(n):
+"""
+    FORMULA 1: Every pigeon sits somewhere
+"""
+def generate_list_clauses_formula_1(n):
     lst_clauses = []
     for pigeon in range(0,n):
         clause = []
@@ -193,22 +153,58 @@ def generate_list_clauses(n):
         lst_clauses.append(clause)
     return lst_clauses
             
-def bdd_clauses_1(lst_clauses,bdd,ph_2_bdd):
+def bdd_clauses_1_formula_1(lst_clauses,bdd,ph_2_bdd):
     lst_bdd_clauses = []
+
     for clause in lst_clauses:
-        print(ph_2_bdd.keys())
-        print(clause[0])
-        bdd_clause = bdd.apply('or',ph_2_bdd[clause[0]],ph_2_bdd[clause[0]])
-        for pig_hole in clause:
-            bdd_clause = bdd.apply('or',bdd_clause,ph_2_bdd[pig_hole])
+        bdd_clause = bdd.apply('or',ph_2_bdd[clause[0]],ph_2_bdd[clause[1]])
         lst_bdd_clauses.append(bdd_clause)
+        # print(bdd_clause.to_expr())
     return lst_bdd_clauses, bdd
 
-def bdd_clauses_2(lst_bdd_clauses,bdd,ph_2_bdd):
+    # for clause in lst_clauses:
+    #     bdd_clause = bdd.apply('or',ph_2_bdd[clause[0]],ph_2_bdd[clause[0]])
+    #     for pig_hole in clause:
+    #         bdd_clause = bdd.apply('or',bdd_clause,ph_2_bdd[pig_hole])
+    #         # print(bdd_clause.to_expr())
+    #     lst_bdd_clauses.append(bdd_clause)
+    # return lst_bdd_clauses, bdd
+
+def bdd_clauses_2_formula_1(lst_bdd_clauses,bdd,ph_2_bdd):
     bdd_clause = lst_bdd_clauses[0]
     for clause in lst_bdd_clauses:
         bdd_clause = bdd.apply('and',bdd_clause,clause)
     return bdd_clause, bdd
+
+
+"""
+    FORMULA 2: Every pigeon sits somewhere
+"""
+def generate_list_clauses_formula_2(n):
+    pigeons = list(range(n))
+    combinations_pigeons = list(itertools.combinations(pigeons, 2))
+    lst_clauses = []
+    for hole in range(0,n-1):
+        for pair in combinations_pigeons:
+            clause = [(pair[0],hole) , (pair[1],hole)]
+            lst_clauses.append(clause)
+    return lst_clauses
+
+def bdd_clauses_1_formula_2(lst_clauses,bdd,ph_2_bdd):
+    lst_bdd_clauses = []
+    for clause in lst_clauses:
+        bdd_clause = bdd.apply('or',~ph_2_bdd[clause[0]],~ph_2_bdd[clause[1]])
+        lst_bdd_clauses.append(bdd_clause)
+        # print(bdd_clause.to_expr())
+    return lst_bdd_clauses, bdd
+
+def bdd_clauses_2_formula_2(lst_bdd_clauses,bdd,ph_2_bdd):
+    bdd_clause = lst_bdd_clauses[0]
+    for clause in lst_bdd_clauses:
+        bdd_clause = bdd.apply('and',bdd_clause,clause)
+    return bdd_clause, bdd
+
+
 
 def pigeonhole(pdfname, n):
     # Create a BDD manager. We only need one.
@@ -219,14 +215,29 @@ def pigeonhole(pdfname, n):
             pigeon_hole = f"x_{p1}_{h}"
             bdd.declare(pigeon_hole)
             ph_2_bdd[(p1,h)] = bdd.var(pigeon_hole)
-    lst_clauses = generate_list_clauses(n)
-    print('******')
-    print(lst_clauses)
-    print('******')
-    lst_bdd_clauses,bdd = bdd_clauses_1(lst_clauses,bdd,ph_2_bdd)
-    bdd_clause,bdd = bdd_clauses_2(lst_bdd_clauses,bdd,ph_2_bdd)
 
-    print(bdd.to_expr(bdd_clause))
+    """FORMULA 1"""
+    lst_clauses_form_1 = generate_list_clauses_formula_1(n)
+    print('List of clauses: ')
+    print(lst_clauses_form_1)
+    print('******')
+    lst_bdd_clauses_form_1,bdd = bdd_clauses_1_formula_1(lst_clauses_form_1,bdd,ph_2_bdd)
+    bdd_clause_form_1,bdd = bdd_clauses_2_formula_1(lst_bdd_clauses_form_1,bdd,ph_2_bdd)
+    print(bdd.to_expr(bdd_clause_form_1))
+
+    """FORMULA 2"""
+    lst_clauses_form_2 = generate_list_clauses_formula_2(n)
+    print('List of clauses: ')
+    print(lst_clauses_form_2)
+    print('******')
+    lst_bdd_clauses_form_2,bdd = bdd_clauses_1_formula_2(lst_clauses_form_2,bdd,ph_2_bdd)
+    bdd_clause_form_2,bdd = bdd_clauses_2_formula_2(lst_bdd_clauses_form_2,bdd,ph_2_bdd)
+    print(bdd.to_expr(bdd_clause_form_2))
+
+    # print(bdd.to_expr())
+
+    bdd.collect_garbage()
+    bdd.dump(pdfname)
 
 
 
@@ -255,7 +266,7 @@ def main():
     ex_to_run(args.pdf, args.n)
 
     # Pigeon Hole System
-    pigeonhole('test.pdf',3)
+    pigeonhole('3pigeons.pdf',3)
 
 if __name__ == '__main__':
     main()
