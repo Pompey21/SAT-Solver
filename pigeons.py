@@ -155,20 +155,12 @@ def generate_list_clauses_formula_1(n):
             
 def bdd_clauses_1_formula_1(lst_clauses,bdd,ph_2_bdd):
     lst_bdd_clauses = []
-
     for clause in lst_clauses:
         bdd_clause = bdd.apply('or',ph_2_bdd[clause[0]],ph_2_bdd[clause[1]])
         lst_bdd_clauses.append(bdd_clause)
         # print(bdd_clause.to_expr())
     return lst_bdd_clauses, bdd
 
-    # for clause in lst_clauses:
-    #     bdd_clause = bdd.apply('or',ph_2_bdd[clause[0]],ph_2_bdd[clause[0]])
-    #     for pig_hole in clause:
-    #         bdd_clause = bdd.apply('or',bdd_clause,ph_2_bdd[pig_hole])
-    #         # print(bdd_clause.to_expr())
-    #     lst_bdd_clauses.append(bdd_clause)
-    # return lst_bdd_clauses, bdd
 
 def bdd_clauses_2_formula_1(lst_bdd_clauses,bdd,ph_2_bdd):
     bdd_clause = lst_bdd_clauses[0]
@@ -218,26 +210,39 @@ def pigeonhole(pdfname, n):
 
     """FORMULA 1"""
     lst_clauses_form_1 = generate_list_clauses_formula_1(n)
-    print('List of clauses: ')
-    print(lst_clauses_form_1)
-    print('******')
+    print('\nCNFing the first formula .... \n')
     lst_bdd_clauses_form_1,bdd = bdd_clauses_1_formula_1(lst_clauses_form_1,bdd,ph_2_bdd)
     bdd_clause_form_1,bdd = bdd_clauses_2_formula_1(lst_bdd_clauses_form_1,bdd,ph_2_bdd)
-    print(bdd.to_expr(bdd_clause_form_1))
+    # print(bdd.to_expr(bdd_clause_form_1))
 
     """FORMULA 2"""
     lst_clauses_form_2 = generate_list_clauses_formula_2(n)
-    print('List of clauses: ')
-    print(lst_clauses_form_2)
-    print('******')
+    print('\nCNFing the second formula .... \n')
     lst_bdd_clauses_form_2,bdd = bdd_clauses_1_formula_2(lst_clauses_form_2,bdd,ph_2_bdd)
     bdd_clause_form_2,bdd = bdd_clauses_2_formula_2(lst_bdd_clauses_form_2,bdd,ph_2_bdd)
-    print(bdd.to_expr(bdd_clause_form_2))
+    # print(bdd.to_expr(bdd_clause_form_2))
 
-    # print(bdd.to_expr())
+    """Reordering"""
+    print('BDDs variable: ')
+    print(bdd.vars)
+    bdd.collect_garbage()
+    bdd.dump('before_reordering.pdf')
+
+
+    print('BDDs re-ordered variables: ')
+    _bdd.reorder(bdd)
+    bdd.dump('after_reordering.pdf')
+    print(bdd.vars)
+
+
+    print('\nCombining two formulas ... \n')
+    """FORMULA 1 /\ FROMULA 2"""
+    final = bdd_clause_form_1 & bdd_clause_form_2
+    if final == bdd.false:
+        print('Great Success!')
 
     bdd.collect_garbage()
-    bdd.dump(pdfname)
+    bdd.dump(pdfname,roots=[final])
 
 
 
